@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversational Bot</title>
+    <script
+        src="https://cdn.jsdelivr.net/npm/microsoft-cognitiveservices-speech-sdk/distrib/browser/microsoft.cognitiveservices.speech.sdk.bundle.js"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="main">
+        <h1>Conversational Bot</h1>
+        <div class="btn">
+            <button id="startButton">Start Listening</button>
+        </div>
+        <div class="text">
+            <div id="result"></div>
+        </div>
+    </div>
+    <script>
+        const synth = window.speechSynthesis;
+        document.getElementById("startButton").addEventListener("click", function () {
+            const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("key", "zone");
+            const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig);
+            let recognitionCompleted = false; // Flag to track if recognition has completed
+
+            function speak(text = "") {
+                if (synth.speaking) {
+                    console.error("Speech synthesis already in progress.");
+                    return;
+                }
+                if (text !== "") {
+                    setTimeout(() => {
+                        const utterThis = new SpeechSynthesisUtterance(text);
+                        synth.speak(utterThis); // Speak after 5 seconds
+                    }, 5000); // Delay of 5 seconds (adjust as needed)
+                }
+            }
+
+            recognizer.recognized = (s, e) => {
+                const recognizedText = e.result.text;
+
+                // Stop recognition after 10 seconds
+                setTimeout(() => {
+                    recognizer.stopContinuousRecognitionAsync();
+                    recognitionCompleted = true;
+                }, 6000);
+
+                // Send the recognized text to the server only if it's not empty
+                if (recognizedText) {
+                    fetch('/receive_text', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ recognized_text: recognizedText }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            document.getElementById("result").innerText = data.result;
+                            speak(data.result);
+                        })
+                        .catch(error => {
+                            console.error('Error receiving result from server:', error);
+                        });
+                }
+            };
+
+            recognizer.startContinuousRecognitionAsync();
+
+            // Stop recognition when the window is closed
+            window.onbeforeunload = () => {
+                recognizer.close();
+            };
+        });
+    </script>
+</body>
+
+</html>
