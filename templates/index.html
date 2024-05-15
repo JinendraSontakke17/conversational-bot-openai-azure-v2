@@ -23,7 +23,7 @@
     <script>
         const synth = window.speechSynthesis;
         document.getElementById("startButton").addEventListener("click", function () {
-            const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("key", "zone");
+            const speechConfig = SpeechSDK.SpeechConfig.fromSubscription("4c9ce23fc9db47729953abad23ffcf65", "eastus");
             const recognizer = new SpeechSDK.SpeechRecognizer(speechConfig);
             let recognitionCompleted = false; // Flag to track if recognition has completed
 
