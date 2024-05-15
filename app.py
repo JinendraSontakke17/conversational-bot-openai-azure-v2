@@ -1,22 +1,35 @@
 from flask import Flask, render_template, request, jsonify
 import logging
-import openai
+# import openai
+from openai import OpenAI
 
 openai.api_key = ""
 
 app = Flask(__name__)
 
-def generate_text(prompt, temperature=0.7, max_tokens=100, n=1, stop=None):
-    response = openai.Completion.create(
-        engine="gpt-3.5-turbo-instruct", 
-        prompt=prompt,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        n=n,
-        stop=stop
+# def generate_text(prompt, temperature=0.7, max_tokens=100, n=1, stop=None):
+#     response = openai.Completion.create(
+#         engine="gpt-3.5-turbo-instruct", 
+#         prompt=prompt,
+#         temperature=temperature,
+#         max_tokens=max_tokens,
+#         n=n,
+#         stop=stop
+#     )
+
+#     return [completion.text.strip() for completion in response.choices]
+
+def generate_text(prompt_text, model_name="gpt-4o", api_key="<api_key>"):
+    client = OpenAI(api_key=api_key)
+
+    completion = client.chat.completions.create(
+        model=model_name,
+        messages=[
+            {"role": "user", "content": prompt_text}
+        ]
     )
 
-    return [completion.text.strip() for completion in response.choices]
+    return completion.choices[0].message.content
 
 @app.route('/')
 def home():
